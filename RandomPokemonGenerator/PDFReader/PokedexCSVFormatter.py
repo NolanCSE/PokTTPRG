@@ -138,7 +138,20 @@ def cleanInfo(info : list):
         typeSpace = False
     return info
 def cleanEvol(evol : list):
-    pass
+    evolBlock = ""
+    for index, evolution in enumerate(evol):
+        evolution = eliminateNewlines(evolution)
+        i = 1
+        while str(i) + " - " in evolution:
+            begin = evolution.index(str(i) + " - ") + len(str(i) + " - ")
+            end = len(evolution)
+            if str(i + 1) + " - " in evolution:
+                end = evolution.index(str(i + 1) + " - ")
+            evolBlock = evolBlock + str(i) + ": " + evolution[begin:end] + "\n"
+            i += 1
+        evol[index] = evolBlock
+        evolBlock = ""
+    return evol
 def cleanSize(size : list):
     pass
 def cleanBreed(breed : list):
@@ -183,3 +196,5 @@ with open(CSV_NAME, encoding='utf8') as pd_file:
 c_names = cleanNames(d_names)
 c_stats = cleanStats(d_stats)
 c_info = cleanInfo(d_info)
+c_evol = cleanEvol(d_evol)
+print(c_evol[int(input())])
