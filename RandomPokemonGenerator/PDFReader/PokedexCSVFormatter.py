@@ -165,8 +165,24 @@ def cleanSize(sizes : list):
         sizes[index] = sizeBlock
         sizeBlock = ""
     return sizes
-def cleanBreed(breed : list):
-    pass
+def cleanBreed(breeds : list):
+    breedBlock = ""
+    for index, breed in enumerate(breeds):
+        genderRatioLoc = breed.index("Gender Ratio : ")
+        gRLen = len("Gender Ratio : ")
+        eggRatioLoc = breed.index("Egg Group : ")
+        eggRLen = len("Egg Group : ")
+        if "Average Hatch Rate : " in breed:
+            ahrLoc = breed.index("Average Hatch Rate : ")
+            ahrLen = len("Average Hatch Rate : ")
+        breedBlock += "Gender Ratio: " + breed[genderRatioLoc + gRLen:breed.index(" M")] + "\n"
+        
+        if "/" in breed[1]#have to check later half for /
+        breedBlock += "Egg Group: "
+
+        if "Average Hatch Rate : " in breed:
+         breedBlock += "Average Hatch Rate: " + "\n"
+    return breeds
 def cleanDiet(diet : list):
     pass
 def cleanHabit(habit : list):
@@ -209,4 +225,10 @@ c_stats = cleanStats(d_stats)
 c_info = cleanInfo(d_info)
 c_evol = cleanEvol(d_evol)
 c_size = cleanSize(d_size)
-print(c_size[722])
+c_breed = cleanBreed(d_breed)
+print(c_breed)
+c_diet = cleanDiet(d_diet)
+c_habit = cleanHabit(d_habit)
+c_cap = cleanCap(d_cap)
+c_skill = cleanSkill(d_skill)
+c_move = cleanMoves(d_move)
