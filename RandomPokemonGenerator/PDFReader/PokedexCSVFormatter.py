@@ -152,8 +152,19 @@ def cleanEvol(evol : list):
         evol[index] = evolBlock
         evolBlock = ""
     return evol
-def cleanSize(size : list):
-    pass
+def cleanSize(sizes : list):
+    sizeBlock = ""
+    for index, size in enumerate(sizes):
+        heightLoc = size.index("Height")
+        heightLen = len("Height : ")
+        weightLoc = size.index("Weight")
+        weightLen = len("Weight : ")
+
+        sizeBlock += "Height: " + size[heightLoc + heightLen:size.index(" / ")] + "\n"
+        sizeBlock += "Weight: " + size[weightLoc + weightLen:size.index(" / ", weightLoc + weightLen)]
+        sizes[index] = sizeBlock
+        sizeBlock = ""
+    return sizes
 def cleanBreed(breed : list):
     pass
 def cleanDiet(diet : list):
@@ -197,4 +208,5 @@ c_names = cleanNames(d_names)
 c_stats = cleanStats(d_stats)
 c_info = cleanInfo(d_info)
 c_evol = cleanEvol(d_evol)
-print(c_evol[int(input())])
+c_size = cleanSize(d_size)
+print(c_size[722])
