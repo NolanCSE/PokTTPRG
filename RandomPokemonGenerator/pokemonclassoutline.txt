@@ -1,0 +1,19 @@
+POKEMON CLASS:
+
+Species Name - str
+Base stats - Dictionary {HP : X, Attack : X, Defense : X, ...}
+Type - Array [TYPE1, TYPE2, TYPE3]
+Evolutions - OrderedDictionary {EVOL1:LVL, EVOL2:LVL, EVOL3: LVL}
+Size Information - Dictionary {Height : X, Weight : X}
+Breeding Information - Class(BreedingInfo):
+							Gender Ratio - int (M)
+							Egg Group - ["group1", "group2"]
+							Average Hatch Rate - (number of days - int, unit - string)
+Diet - [DIET_TYPE1, DIET_TYPE2, ...]
+Habitat - [HABITAT_TYPE1, HABITAT_TYPE2, ...]
+Capabilities - [Capability1, Capability2, ...] (each Capability is its own object of type Capability)
+Skill List - [SKILL1, SKILL2, SKILL3, ...] (each Skill is its own object of type skill)
+Move List - [(level learned - int, MOVE, type), ...] (each Move is its own object of type Move)
+TM/HM Move List - [(ability - bool, level - int, MOVE)]
+Egg Move List - [MOVE1, MOVE2, ...]
+Tutor Move List - [MOVE1, MOVE2, ...]
