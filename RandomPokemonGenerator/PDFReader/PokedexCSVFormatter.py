@@ -121,8 +121,6 @@ def cleanInfo(info : list):
     typeSynSpace = False
     for index, infoBlock in enumerate(info):
         count += 1
-        print(count)
-        if count == 722: import pdb; pdb.set_trace()
         if count == 712:
             infoBlock = "Type : Psychic Basic Ability 1: Conqueror  Adv Ability 1: Download  Adv Ability 2: Telepathy  High Ability: Transporter"
         elif count == 711:
@@ -185,6 +183,3 @@ with open(CSV_NAME, encoding='utf8') as pd_file:
 c_names = cleanNames(d_names)
 c_stats = cleanStats(d_stats)
 c_info = cleanInfo(d_info)
-while True:
-    inp = int(input())
-    print(c_info[inp])
