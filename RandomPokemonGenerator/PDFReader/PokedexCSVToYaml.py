@@ -19,14 +19,45 @@ def CTYNames(names : list):
     for name in names:
         finNames.append(removeAllCharacters(name, "."))
     return finNames
+#CTYSTATS --------
+
+#parseStatValue just returns the integer in the string as a string w/o spaces
+def parseStatValue(line : str):
+    numStr = ""
+    i = 0
+    while i < len(line):
+        if line[i].isdigit():
+            numStr += line[i]
+        i += 1
+    return numStr
+
 #CTYStats -- dictionary {HP: 2, AT: 3, DF: 10, SA: 6, SD: 9, SP: 7}
 def CTYStats(stats : list):
-    for statBlock in stats:
-        for stat in statBlock.splitlines():
-            pass
-    pass
+    statBlocks = []
+    statBlock = {}
+    statLabel = ""
+    for statBlockStr in stats:
+        for line in statBlockStr.splitlines():
+            if "HP" in line:
+                statLabel = "HP"
+            elif "Special Attack" in line:
+                statLabel = "SA"
+            elif "Special Defense" in line:
+                statLabel = "SD"
+            elif "Attack" in line:
+                statLabel = "AT"
+            elif "Defense" in line:
+                statLabel = "DF"
+            elif "Speed" in line:
+                statLabel = "SP"
+            statBlock[statLabel] = parseStatValue(line)
+        statBlocks.append(statBlock.copy())
+    return statBlocks
+
 #CTYBasicInformation -- dictionary of lists
 def CTYBasicInfo(basInf : list):
+    yml_form_basicInformationBlocks = []
+    
     pass
 #CTYEvol -- dictionary
 def CTYEvol(evols : list):
