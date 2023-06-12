@@ -100,6 +100,38 @@ def parseInfoBlock(infoBlock : str, typeSpace=False, typeSynSpace=False):
             infoBlockF = infoBlockF + infoBlock[HALoc + HALen:]
     infoBlockF = infoBlockF + "]"
     return infoBlockF
+
+def findNextNonColonSpace(index, string):
+    currentCharInd = index
+    if len(string) == 0:
+        return -1
+    while string[currentCharInd] == " " or string[currentCharInd] == ":":
+        currentCharInd += 1
+        if currentCharInd == len(string):
+            return currentCharInd
+    return currentCharInd
+def getWordBeforeSeparator(totalWord, startIndex, separator):
+    return totalWord[startIndex:totalWord.index(separator, startIndex)]
+def removeCharacter(word, removeChar):
+    if removeChar not in word:
+        return word
+    if word[0] == removeChar:
+        return word[1:]
+    elif word[len(word) - 1] == removeChar:
+        return word[:len(word)-1]
+    return word[:word[word.index(removeChar)]] + word[word.index(removeChar) + 1:]
+def removeAllCharacters(word, removeChar):
+    while removeChar in word:
+        word = removeCharacter(word, removeChar)
+    return word
+def eliminateEndSpaces(word):
+    if len(word) == 0:
+        return word
+    while word[-1] == " " or word[-1] == "\n":
+        word = word[:-1]
+        if len(word) == 0:
+            return word
+    return word
 #data cleaners
 def cleanNames(names : list):
     i = 0
@@ -168,27 +200,113 @@ def cleanSize(sizes : list):
 def cleanBreed(breeds : list):
     breedBlock = ""
     for index, breed in enumerate(breeds):
-        genderRatioLoc = breed.index("Gender Ratio : ")
-        gRLen = len("Gender Ratio : ")
-        eggRatioLoc = breed.index("Egg Group : ")
-        eggRLen = len("Egg Group : ")
-        if "Average Hatch Rate : " in breed:
-            ahrLoc = breed.index("Average Hatch Rate : ")
-            ahrLen = len("Average Hatch Rate : ")
-        breedBlock += "Gender Ratio: " + breed[genderRatioLoc + gRLen:breed.index(" M")] + "\n"
+        genderRatioLoc = breed.index("Gender Ratio")
+        gRLen = len("Gender Ratio")
+        maleLoc = findNextNonColonSpace(genderRatioLoc + gRLen, breed)
+        eggRatioLoc = breed.index("Egg Group")
+        eggRLen = len("Egg Group")
+        eggLoc = findNextNonColonSpace(eggRatioLoc + eggRLen, breed)
+        if "Average Hatch Rate" in breed:
+            ahrLoc = breed.index("Average Hatch Rate")
+            ahrLen = len("Average Hatch Rate")
+            ahrTrueLoc = findNextNonColonSpace(ahrLoc + ahrLen, breed)
+        if "M" not in breed:
+            breedBlock += "Gender Ratio: -1\n"
+        else:
+            breedBlock += "Gender Ratio: " + breed[maleLoc:breed.index(" M")] + "\n"
         
-        if "/" in breed[1]#have to check later half for /
-        breedBlock += "Egg Group: "
+        if "/" in breed[eggLoc:]:
+            if " / " in breed[eggLoc:]:
+                word = getWordBeforeSeparator(breed, eggLoc, " / ")
+                fullLen = breed.index(word) + len(word) + len(" / ") 
+                wordAfter = breed[fullLen:breed.index(" ", fullLen)]
+            elif "/ " in breed[eggLoc:]:
+                word = getWordBeforeSeparator(breed, eggLoc, "/ ")
+                fullLen = breed.index(word) + len(word) + len("/ ") 
+                wordAfter = breed[fullLen:breed.index(" ", fullLen)]
+            elif " /" in breed[eggLoc:]:
+                word = getWordBeforeSeparator(breed, eggLoc, " /")
+                fullLen = breed.index(word) + len(word) + len(" /") 
+                wordAfter = breed[fullLen:breed.index(" ", fullLen)]
+            else:
+                word = getWordBeforeSeparator(breed, eggLoc, "/")
+                fullLen = breed.index(word) + len(word) + len("/") 
+                wordAfter = breed[fullLen:breed.index(" ", fullLen)]
+            breedBlock += "Egg Group: " + word + ", " + wordAfter + "\n"
+        else:
+            word = getWordBeforeSeparator(breed, eggLoc, " ")
+            breedBlock += "Egg Group: " + word + "\n"
 
-        if "Average Hatch Rate : " in breed:
-         breedBlock += "Average Hatch Rate: " + "\n"
+        if "Average Hatch Rate" in breed:
+            ahrStat = breed[ahrTrueLoc:]
+            breedBlock += "Average Hatch Rate: " + ahrStat + "\n"
+        breeds[index] = breedBlock
+        breedBlock = ""
     return breeds
 def cleanDiet(diet : list):
-    pass
+    dietBlock = ""
+    for index, dietIns in enumerate(diet):
+        if "," in dietIns:
+            threeWords = False
+            start = findNextNonColonSpace(0, dietIns)
+            firstWord = getWordBeforeSeparator(dietIns, start, ",")
+            if "," in dietIns[dietIns.index(firstWord) + len(firstWord + ","):]:
+                nextWord = getWordBeforeSeparator(dietIns, dietIns.index(firstWord) + len(firstWord + ", "), ",")
+                threeWords = True
+            if threeWords:
+                if "\n" not in dietIns:
+                    lastWord = getWordBeforeSeparator(dietIns, dietIns.index(nextWord) + len(nextWord + ", "), "\n")
+                else:
+                    lastWord = getWordBeforeSeparator(dietIns, dietIns.index(nextWord) + len(nextWord + ", "), " ")
+                threeWords = False
+                dietBlock = firstWord + "\n" + nextWord + "\n" + lastWord
+            else:
+                if "\n" not in dietIns:
+                    lastWord = getWordBeforeSeparator(dietIns, dietIns.index(firstWord) + len(firstWord + ", "), " ")
+                else:
+                    #import pdb; pdb.set_trace()
+                    lastWord = getWordBeforeSeparator(dietIns, dietIns.index(firstWord) + len(firstWord + ", "), "\n")
+                dietBlock = firstWord + "\n" + lastWord
+            diet[index] = dietBlock
+            dietBlock = ""
+        else:
+            if "\n" not in dietIns:
+                diet[index] = getWordBeforeSeparator(dietIns, findNextNonColonSpace(0, dietIns), " ")
+            else:
+                diet[index] = getWordBeforeSeparator(dietIns, findNextNonColonSpace(0, dietIns), "\n")
+    return diet
 def cleanHabit(habit : list):
-    pass
+    habitBlock = ""
+    #import pdb; pdb.set_trace()
+    for index, habitIns in enumerate(habit):
+        unfinishedDiet = habitIns
+        while "," in unfinishedDiet:
+            word = getWordBeforeSeparator(unfinishedDiet, findNextNonColonSpace(0, unfinishedDiet), ",")
+            unfinishedDiet = unfinishedDiet[unfinishedDiet.index(word) + len(word + ", "):]
+            habitBlock += word + "\n"
+        habitBlock += eliminateSpacesAndNewlines(unfinishedDiet)
+        habit[index] = removeAllCharacters(habitBlock, ":")
+        habitBlock = ""
+    return habit
 def cleanCap(capabilities : list):
-    pass
+    for index, capability in enumerate(capabilities):
+        #import pdb; pdb.set_trace()
+        capBlock = ""
+        un_cap = capability
+        while "," in un_cap:
+            if "(" in un_cap:
+                if un_cap.index("(") < un_cap.index(","):
+                    word = getWordBeforeSeparator(un_cap, findNextNonColonSpace(0, un_cap), ")") + ")"
+                else:
+                    word = getWordBeforeSeparator(un_cap, findNextNonColonSpace(0, un_cap), ",")
+            else:
+                word = getWordBeforeSeparator(un_cap, findNextNonColonSpace(0, un_cap), ",")
+            un_cap = un_cap[un_cap.index(word) + len(word + ", "):]
+            capBlock += word + "\n"
+        if not findNextNonColonSpace(0, un_cap) == -1:
+            capBlock += eliminateEndSpaces(un_cap[findNextNonColonSpace(0, un_cap):])
+        capabilities[index] = capBlock
+    return capabilities
 def cleanSkill(skills : list):
     pass
 def cleanMoves(moves : list):
@@ -226,9 +344,9 @@ c_info = cleanInfo(d_info)
 c_evol = cleanEvol(d_evol)
 c_size = cleanSize(d_size)
 c_breed = cleanBreed(d_breed)
-print(c_breed)
 c_diet = cleanDiet(d_diet)
 c_habit = cleanHabit(d_habit)
 c_cap = cleanCap(d_cap)
 c_skill = cleanSkill(d_skill)
+print(d_skill)
 c_move = cleanMoves(d_move)
