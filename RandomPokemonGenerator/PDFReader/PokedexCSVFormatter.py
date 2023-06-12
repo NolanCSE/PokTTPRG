@@ -119,7 +119,7 @@ def removeCharacter(word, removeChar):
         return word[1:]
     elif word[len(word) - 1] == removeChar:
         return word[:len(word)-1]
-    return word[:word[word.index(removeChar)]] + word[word.index(removeChar) + 1:]
+    return word[:word.index(removeChar)] + word[word.index(removeChar) + 1:]
 def removeAllCharacters(word, removeChar):
     while removeChar in word:
         word = removeCharacter(word, removeChar)
@@ -326,8 +326,88 @@ def cleanSkill(skills : list):
             skillBlock += eliminateEndSpaces(un_skill[findNextNonColonSpace(0, un_skill):])
         skills[index] = skillBlock
     return skills
+def getStuffBetween(word, startInd, endInd):
+    newWord = word[startInd:endInd]
+    return removeAllCharacters(eliminateEndSpaces(newWord[findNextNonColonSpace(0, newWord):]), "\n")
+def cleanLvlMoves(moveList):
+    moveList = removeAllCharacters(moveList, "§")
+    moveList = eliminateEndSpaces(moveList)
+
+    moveListFinal = ""
+    while "\n" in moveList:
+        startInd = moveList.index("\n")
+        if "\n" in moveList[startInd + 1:]:
+            endInd = moveList.index("\n", startInd + 1)
+        else:
+            break
+        stuffBetween = getStuffBetween(moveList, startInd, endInd)
+        moveListFinal += stuffBetween + "\n"
+        moveList = moveList[moveList.index("\n", moveList.index(stuffBetween)):]
+    return moveListFinal
+def cleanTMMoves(moveList):
+    #import pdb; pdb.set_trace()
+    moveBlock = ""
+    un_move = moveList
+    while "," in un_move:
+        word = getWordBeforeSeparator(un_move, findNextNonColonSpace(0, un_move), ",")
+        un_move = un_move[un_move.index(word) + len(word + ", "):]
+        moveBlock += word + "\n"
+    if not findNextNonColonSpace(0, un_move) == -1:
+        moveBlock += eliminateEndSpaces(un_move[findNextNonColonSpace(0, un_move):])
+    return moveList
+def cleanTutorMoves(moveList):
+    #import pdb; pdb.set_trace()
+    moveBlock = ""
+    un_move = moveList
+    while "," in un_move:
+        word = getWordBeforeSeparator(un_move, findNextNonColonSpace(0, un_move), ",")
+        un_move = un_move[un_move.index(word) + len(word + ", "):]
+        moveBlock += word + "\n"
+    if not findNextNonColonSpace(0, un_move) == -1:
+        moveBlock += eliminateEndSpaces(un_move[findNextNonColonSpace(0, un_move):])
+    return moveList
 def cleanMoves(moves : list):
-    pass
+    lvl_moves = []
+    tm_moves = []
+    tutor_moves = []
+
+    debug_counter = 0
+
+    for moveList in moves:
+        lvl_ind = moveList.index("Level Up Move List")
+        lvl_length = len("Level Up Move List")
+
+        if "TM/HM Move List" in moveList:
+            tm_ind = moveList.index("TM/HM Move List")
+            tm_length = len("TM/HM Move List")
+            if "Tutor Move List" in moveList:
+                tutor_ind = moveList.index("Tutor Move List")
+                tutor_length = len("Tutor Move List")
+                tutor_moveList = moveList[tutor_ind + tutor_length:]
+            else:
+                tutor_moveList = ""
+            tm_moveList = moveList[tm_ind + tm_length:tutor_ind]
+        else:
+            tm_moveList = ""
+            if "Tutor Move List" in moveList:
+                tutor_ind = moveList.index("Tutor Move List")
+                tutor_length = len("Tutor Move List")
+                tutor_moveList = moveList[tutor_ind + tutor_length:]
+                tm_ind = tutor_ind
+            else:
+                tutor_moveList = ""
+                tm_ind = -1
+
+        if tm_ind == -1:        
+            lvl_moveList = moveList[lvl_ind + lvl_length:]
+        else:
+            lvl_moveList = moveList[lvl_ind + lvl_length: tm_ind]
+        lvl_moves.append(cleanLvlMoves(lvl_moveList))
+        tm_moves.append(cleanTMMoves(tm_moveList))
+        tutor_moves.append(cleanTutorMoves(tutor_moveList))
+
+        debug_counter += 1
+    return lvl_moves, tm_moves, tutor_moves
 
 d_names = []
 d_stats = []
@@ -365,4 +445,4 @@ c_diet = cleanDiet(d_diet)
 c_habit = cleanHabit(d_habit)
 c_cap = cleanCap(d_cap)
 c_skill = cleanSkill(d_skill)
-c_move = cleanMoves(d_move)
+c_move, c_tm, c_tutor = cleanMoves(d_move)
