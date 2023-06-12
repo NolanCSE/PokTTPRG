@@ -1,5 +1,6 @@
 import csv
 CSV_NAME = "pokedexCSV.csv"
+CSV_WRITE = "pokedexCLEANEDCSV.csv"
 
 def getFrontDigits(name : str):
     count = 0
@@ -339,6 +340,7 @@ def cleanLvlMoves(moveList):
         if "\n" in moveList[startInd + 1:]:
             endInd = moveList.index("\n", startInd + 1)
         else:
+            moveListFinal += getStuffBetween(moveList, startInd, len(moveList))
             break
         stuffBetween = getStuffBetween(moveList, startInd, endInd)
         moveListFinal += stuffBetween + "\n"
@@ -446,3 +448,14 @@ c_habit = cleanHabit(d_habit)
 c_cap = cleanCap(d_cap)
 c_skill = cleanSkill(d_skill)
 c_move, c_tm, c_tutor = cleanMoves(d_move)
+
+i = 0
+
+header = ["Species Name", "Stats", "Basic Information", "Evolutions", "Size", "Breeding Information", "Diet", "Habitat", "Capabilities", "Skills", "Level Up Moves", "TM/HM Moves", "Tutor Moves"]
+with open(CSV_WRITE, "w", encoding="UTF-8", newline="") as cleanedDex:
+    writer = csv.writer(cleanedDex)
+    writer.writerow(header)
+    while i < len(c_names):
+        writer.writerow([c_names[i], c_stats[i], c_info[i], c_evol[i], c_size[i], c_breed[i], c_diet[i], c_habit[i], c_cap[i], c_skill[i], c_move[i], c_tm[i], c_tutor[i]])
+        i += 1
+    
