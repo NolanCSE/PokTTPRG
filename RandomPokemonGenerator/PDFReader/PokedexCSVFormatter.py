@@ -308,7 +308,24 @@ def cleanCap(capabilities : list):
         capabilities[index] = capBlock
     return capabilities
 def cleanSkill(skills : list):
-    pass
+    for index, skill in enumerate(skills):
+        #import pdb; pdb.set_trace()
+        skillBlock = ""
+        un_skill = skill
+        while "," in un_skill:
+            if "(" in un_skill:
+                if un_skill.index("(") < un_skill.index(","):
+                    word = getWordBeforeSeparator(un_skill, findNextNonColonSpace(0, un_skill), ")") + ")"
+                else:
+                    word = getWordBeforeSeparator(un_skill, findNextNonColonSpace(0, un_skill), ",")
+            else:
+                word = getWordBeforeSeparator(un_skill, findNextNonColonSpace(0, un_skill), ",")
+            un_skill = un_skill[un_skill.index(word) + len(word + ", "):]
+            skillBlock += word + "\n"
+        if not findNextNonColonSpace(0, un_skill) == -1:
+            skillBlock += eliminateEndSpaces(un_skill[findNextNonColonSpace(0, un_skill):])
+        skills[index] = skillBlock
+    return skills
 def cleanMoves(moves : list):
     pass
 
@@ -348,5 +365,4 @@ c_diet = cleanDiet(d_diet)
 c_habit = cleanHabit(d_habit)
 c_cap = cleanCap(d_cap)
 c_skill = cleanSkill(d_skill)
-print(d_skill)
 c_move = cleanMoves(d_move)
