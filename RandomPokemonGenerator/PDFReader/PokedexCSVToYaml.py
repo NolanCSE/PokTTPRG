@@ -4,11 +4,11 @@ import csv
 def removeCharacter(word, removeChar):
     if removeChar not in word:
         return word
-    if word[0] == removeChar:
-        return word[1:]
-    elif word[len(word) - 1] == removeChar:
-        return word[:len(word)-1]
-    return word[:word.index(removeChar)] + word[word.index(removeChar) + 1:]
+    if word[0] == removeChar[0]:
+        return word[len(removeChar):]
+    elif word[len(word) - 1] == removeChar[-1]:
+        return word[:len(word)-len(removeChar)]
+    return word[:word.index(removeChar)] + word[word.index(removeChar) + len(removeChar):]
 def removeAllCharacters(word, removeChar):
     while removeChar in word:
         word = removeCharacter(word, removeChar)
@@ -119,28 +119,57 @@ def findDigits(line : str):
         i += 1
     return line[:i]
 def handleMisc(line : str):
-    pass
+    if "Holding" in line:
+        line = removeCharacter(line, "Holding")
+    return {"HOLDING" : removeAllNonsense(line)}
+def pokemonInside(line : str, pokemonNames : str):
+    pokemonsInside = []
+    for pokemon in pokemonNames:
+        if pokemon.lower() in line.lower():
+            pokemonsInside.append(pokemon.lower())
+    return pokemonsInside
+def getMinLength(strArray : str):
+    minLength = len(strArray[0])
+    minInd = 0
+    for index, string in enumerate(strArray):
+        if len(string) < minLength:
+            minLength = len(string)
+            minInd = index
+    return minInd
 #CTYEvol -- dictionary
     #Stage: NUMBER
     #Name: NAME
     #Level: LEVEL
     #Misc: Miscellaneous
 def CTYEvol(pokemonNames : list, evols : str):
+    evolList = []
     evolDict = {"STAGE" : "", "NAME" : "", "LEVEL" : "", "MISC" : ""}
     for line in evols.splitlines():
         betterLine = removeAllNonsense(line) #  \n 2: Abomasnow Minimum 30 \n --> 2: Abomasnow Minimum 30
         evolDict["STAGE"] = betterLine[0]
         betterLine = betterLine[3:] # 2: Abomasnow Minimum 30 --> Abomasnow Minimum 30
-        evolDict["NAME"] = betterLine[:betterLine.index(" ")]
-        betterLine = betterLine[betterLine.index(" ") + 1:] # Abomasnow Minimum 30 --> Minimum 30
-        minimumLoc = betterLine.index("Minimum")
-        evolDict["LEVEL"] = findDigits(betterLine[minimumLoc + len("Minimum "):])
-        betterLine = removeCharacter(betterLine, "Minimum: " + evolDict["LEVEL"]) # Minimum 30 --> /0
-        if len(betterLine) == 0:
+        pokemonsInside = pokemonInside(betterLine, pokemonNames)
+        pokI = getClosest(pokemonsInside) #GOTTA FINISH
+        if pokemon.lower() in betterLine.lower():
+            evolDict["NAME"] = pokemon
+            nameInd = betterLine.lower().index(pokemon.lower())
+            betterLine = betterLine[nameInd + len(pokemon) + 1:]
+        if "Minimum" not in betterLine:
+            evolDict["LEVEL"] = 0
             evolDict["MISC"] = {}
-            return evolDict
-        evolDict["MISC"] = handleMisc(line)
-    return evolDict
+            evolList.append(evolDict.copy())
+        else:
+            minimumLoc = betterLine.index("Minimum")
+            evolDict["LEVEL"] = findDigits(betterLine[minimumLoc + len("Minimum "):])
+            betterLine = removeCharacter(betterLine, "Minimum: " + evolDict["LEVEL"]) # Minimum 30 --> /0
+            betterLine = removeCharacter(betterLine, "Minimum " + evolDict["LEVEL"]) # Minimum 30 --> /0
+            if len(removeAllNonsense(betterLine)) == 0:
+                evolDict["MISC"] = {}
+                evolList.append(evolDict.copy())
+            else:
+                evolDict["MISC"] = handleMisc(betterLine)
+                evolList.append(evolDict.copy())
+    return evolList
 #CTYSize -- dictionary
 def CTYSize(sizes : list):
     pass
@@ -172,12 +201,14 @@ def CTYTutorMoves(tut_moves : list):
 def main():
     pokeEntry = {}
     names = []
+    pokemons = []
     with open("pokedexCLEANEDCSV.csv", encoding="UTF-8") as csv_file:
         cleanedPokedex = csv.DictReader(csv_file)
         for pokemon in cleanedPokedex:
             pokeEntry["NAME"] = CTYNames(pokemon['Species Name'])
             names.append(pokeEntry["NAME"])
-        for pokemon in cleanedPokedex:
+            pokemons.append(pokemon)
+        for pokemon in pokemons:
             pokeEntry["STATS"] = CTYStats(pokemon['Stats'])
             pokeEntry["BASIC_INFO"] = CTYBasicInfo(pokemon['Basic Information'])
             pokeEntry["EVOLUTIONS"] = CTYEvol(names, pokemon['Evolutions'])
