@@ -58,9 +58,44 @@ def processCommaList(commaStr : str):
         commaStr = commaStr[commaStr.index(",") + 1:]
     ls.append(removeAllNonsense(commaStr))
     return ls
-
+#CTYNAME ----------
+def spaceOut(camelCase):
+    #if there is no space between a lower and upper case letter, insert one
+    i = 0
+    while i < len(camelCase) - 1:
+        if (not camelCase[i].isupper()) and camelCase[i + 1].isupper():
+            camelCase = camelCase[:i + 1] + " " + camelCase[i + 1:]
+            i += 1
+        i += 1
+    return camelCase
 #CTYName -- string
 def CTYNames(name : str):
+    #Special cases
+    if name == "QUIILLADIN":
+        name = "QUILLADIN"
+    if name == "SLIGGOO":
+        name = "SLIGOO"
+    elif name == "NIDORAN(F)":
+        name = "NIDORAN F"
+    elif name == "NIDORAN(M)":
+        name = "NIDORAN M"
+    elif "MIMEJR." in name:
+        return "MIME JR."
+    elif "MR.MIME" in name:
+        return "MR. MIME"
+    elif "FARFETCH" in name:
+        return "FARFETCH'D"
+
+    #Form cases
+    if "Form" in name:
+        startForm = 0
+        for ind, letter in enumerate(name):
+            if not letter.isupper():
+                startForm = ind - 1
+                break
+        actName = name[:startForm]
+        formName = name[startForm:]
+        name = actName + " (" + spaceOut(formName) + ")"
     return removeAllNonsense(removeAllCharacters(name, "."))
 #CTYSTATS --------
 
@@ -119,13 +154,46 @@ def findDigits(line : str):
         i += 1
     return line[:i]
 def handleMisc(line : str):
+    miscDict = {}
+    beenIn = False
+    if "Female" in line or "Male" in line:
+        #import pdb; pdb.set_trace()
+        if "Female" in line:
+            strVar = "Female"
+        else:
+            strVar = "Male"
+        line = removeCharacter(line, strVar)
+        miscDict["GENDER"] = strVar
+        beenIn = True
+    if "Night" in line:
+        if "Night" in line:
+            strVar = "Night"
+        else:
+            strVar = "Day"
+        line = removeCharacter(line, strVar)
+        miscDict["TIME"] = strVar
+        beenIn = True
     if "Holding" in line:
         line = removeCharacter(line, "Holding")
-    return {"HOLDING" : removeAllNonsense(line)}
+        miscDict["HOLDING"] = removeAllNonsense(line)
+        beenIn = True
+    if "Stone" in line:
+        miscDict["HOLDING"] = removeAllNonsense(line)
+        beenIn = True
+    if "Learn" in line:
+        line = removeCharacter(line, "Learn")
+        miscDict["LEARN"] = removeAllNonsense(line)
+        beenIn = True
+    if not beenIn:
+        miscDict["MISC"] = removeAllNonsense(line)
+    return miscDict
 def pokemonInside(line : str, pokemonNames : str):
     pokemonsInside = []
     for pokemon in pokemonNames:
-        if pokemon.lower() in line.lower():
+        if "(" in pokemon:
+            if removeAllNonsense(pokemon.lower()[:pokemon.index("(")]) in line.lower():
+                pokemonsInside.append(removeAllNonsense(pokemon.lower()[:pokemon.index("(")]))
+        elif pokemon.lower() in line.lower():
             pokemonsInside.append(pokemon.lower())
     return pokemonsInside
 def getMinLength(strArray : str):
@@ -136,20 +204,86 @@ def getMinLength(strArray : str):
             minLength = len(string)
             minInd = index
     return minInd
+def getClosest(searchWord : str, listOfWords : list):
+    #import pdb; pdb.set_trace()
+    closestInd = searchWord.index(listOfWords[0])
+    wordLength = len(listOfWords[0])
+    for word in listOfWords:
+        if searchWord.index(word) < closestInd or (searchWord.index(word) == closestInd and len(word) > wordLength):
+            closestInd = searchWord.index(word)
+            wordLength = len(word)
+    return closestInd, wordLength
+def numberColonOrDashExists(text : str):
+    for ind, character in enumerate(text):
+        if (ind == len(text) - 1) or (ind == len(text) - 2):
+            return False
+        if (ind != len(text) - 1) and (character.isdigit() and text[ind + 1] == ":") or (character.isdigit() and text[ind + 2] == "-"):
+            return True
+    return False
+def getIndexFirstNum(text : str):
+    for ind, character in enumerate(text):
+        if ind == len(text) - 1 or ind == len(text) - 2:
+            return -1
+        elif (character.isdigit() and text[ind + 1] == ":") or (character.isdigit() and text[ind + 2] == "-"):
+            return ind
+    return -1
+def convertFloatToString(num : float):
+    #import pdb; pdb.set_trace()
+    return str(num.__round__(2))
+def formatMultipleEvols(evolText : str):
+    copyEvolText = ""
+    wholeTrackers = []
+    #import pdb; pdb.set_trace()
+    while numberColonOrDashExists(evolText):
+        ind = getIndexFirstNum(evolText)
+        if len(wholeTrackers) < int(evolText[ind]):
+            wholeTrackers.append(float(evolText[ind]))
+        else:
+            wholeTrackers[int(evolText[ind]) - 1] += 0.01
+        evolText = removeAllNonsense(evolText)
+        if getIndexFirstNum(evolText[ind + 1:]) == -1:
+            endInd = len(evolText)
+        else:
+            endInd = getIndexFirstNum(evolText[ind + 1:]) + len(evolText[:ind + 1])
+        potentialText = removeAllNonsense(evolText[ind:endInd])
+        if "-" in potentialText:
+            potentialText = convertFloatToString(wholeTrackers[int(potentialText[0]) - 1]) + ": " + potentialText[4:]
+        copyEvolText += potentialText + "\n"
+        evolText = evolText[0:ind] + evolText[endInd:]
+    return removeAllNonsense(copyEvolText)
 #CTYEvol -- dictionary
     #Stage: NUMBER
     #Name: NAME
     #Level: LEVEL
     #Misc: Miscellaneous
 def CTYEvol(pokemonNames : list, evols : str):
+    if "Y anma" in evols:
+        evols = "1: Yanma\n2: Yanmega Learn Ancient Power"
+    if "Farfetch’ d" in evols:
+        evols = "1: Farfetch'd"
+    if "Poliwrath" in evols:
+        evols = "1: Poliwag\n2: Poliwhirl Minimum 25\n3: Poliwrath Water Stone Minimum 30 3 - Politoed Holding King's Rock Minimum 30"
     evolList = []
     evolDict = {"STAGE" : "", "NAME" : "", "LEVEL" : "", "MISC" : ""}
+    if "-" in evols and "-Z" not in evols and "-oh" not in evols:
+        #import pdb; pdb.set_trace()
+        evols = formatMultipleEvols(evols)
+    
     for line in evols.splitlines():
         betterLine = removeAllNonsense(line) #  \n 2: Abomasnow Minimum 30 \n --> 2: Abomasnow Minimum 30
-        evolDict["STAGE"] = betterLine[0]
-        betterLine = betterLine[3:] # 2: Abomasnow Minimum 30 --> Abomasnow Minimum 30
+        if not betterLine[0].isdigit():
+            break
+        if betterLine[1] != ".":
+            evolDict["STAGE"] = betterLine[0]
+            betterLine = betterLine[3:]
+        else:   
+            evolDict["STAGE"] = betterLine[0:4]
+            betterLine = betterLine[6:]
         pokemonsInside = pokemonInside(betterLine, pokemonNames)
-        pokI = getClosest(pokemonsInside) #GOTTA FINISH
+        if len(pokemonsInside) == 0:
+            import pdb; pdb.set_trace()
+        pokI, pokL = getClosest(betterLine.lower(), pokemonsInside) #GOTTA FINISH
+        pokemon = betterLine[pokI:pokI + pokL]
         if pokemon.lower() in betterLine.lower():
             evolDict["NAME"] = pokemon
             nameInd = betterLine.lower().index(pokemon.lower())
