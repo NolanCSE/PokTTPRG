@@ -305,17 +305,47 @@ def CTYEvol(pokemonNames : list, evols : str):
                 evolList.append(evolDict.copy())
     return evolList
 #CTYSize -- dictionary
-def CTYSize(sizes : list):
-    pass
+def CTYSize(sizes : str):
+    sizeDict = {"HEIGHT" : "", "WEIGHT" : ""}
+    for line in sizes.splitlines():
+        if "Height:" in line:
+            sizeDict["HEIGHT"] = line[8:]
+        else:
+            sizeDict["WEIGHT"] = line[8:]
+    return sizeDict
 #CTYBreedingInformation -- dictionary of lists
-def CTYBreedInfo(breedInf : list):
-    pass
+def CTYBreedInfo(breedInf : str):
+    breedDict = {}
+    for ind, line in enumerate(breedInf.splitlines()):
+        if ind == 0: #Gender Ratio
+            potential = removeAllNonsense(line[len("Gender Ratio: "):])
+            if potential == "-1":
+                potential = "No Gender"
+            elif "No Gender" in potential:
+                potential = "No Gender"
+            elif "Genderless" in potential:
+                potential = "No Gender"
+            breedDict["MALE RATIO"] = potential
+            pass
+        elif ind == 1: #Egg Group
+            breedDict["EGG GROUP"] = processCommaList(removeAllNonsense(line[len("Egg Group: "):]))
+            pass
+        elif ind == 2: #Average Hatch Rate
+            breedDict["HATCH RATE"] = removeAllNonsense(line[len("Average Hatch Rate: "):])
+            pass
+    return breedDict
 #Diet -- List
-def CTYDiet(diets : list):
-    pass
+def CTYDiet(diets : str):
+    diet = []
+    for line in diets.splitlines():
+        diet.append(removeAllNonsense(line))
+    return diet
 #Habitat -- List
-def CTYHabit(habits : list):
-    pass
+def CTYHabit(habits : str):
+    habitats = []
+    for line in habits.splitlines():
+        habitats.append(removeAllNonsense(line))
+    return habitats
 #Capabilities -- Dictionary
 def CTYCapabilities(capabilities : list):
     pass
@@ -346,7 +376,11 @@ def main():
             pokeEntry["STATS"] = CTYStats(pokemon['Stats'])
             pokeEntry["BASIC_INFO"] = CTYBasicInfo(pokemon['Basic Information'])
             pokeEntry["EVOLUTIONS"] = CTYEvol(names, pokemon['Evolutions'])
-            print(pokeEntry["EVOLUTIONS"])
+            pokeEntry["SIZE"] = CTYSize(pokemon['Size'])
+            pokeEntry["BREED_INFO"] = CTYBreedInfo(pokemon['Breeding Information'])
+            pokeEntry["DIET"] = CTYDiet(pokemon['Diet'])
+            pokeEntry["HABITAT"] = CTYHabit(pokemon['Habitat'])
+            print(pokeEntry["HABITAT"])
 if __name__ == "__main__":
     main()
 
