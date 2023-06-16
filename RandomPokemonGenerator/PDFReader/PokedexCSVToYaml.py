@@ -505,14 +505,23 @@ def CTYLvlMoves(lvl_moves : list):
     return moveList.copy()
 
 # TM/HM Moves -- Dictionary of dictionary
+def checkNumDigits(text : str):
+    count = 0
+    for character in text:
+        if character.isdigit():
+            count += 1
+        else:
+            return count
+    return count
 def CTYTMMoves(tm_moves : list):
     fin_move_list = []
     tm_moves_list = processCommaList(tm_moves)
     for move in tm_moves_list:
         moveD = {}
         bMove = removeAllNonsense(move)
-        moveD["LEVEL"] = bMove[0:2]
-        moveD["NAME"] = removeAllNonsense(bMove[2:])
+        numDigs = checkNumDigits(bMove)
+        moveD["LEVEL"] = bMove[0:numDigs]
+        moveD["NAME"] = removeAllNonsense(bMove[numDigs:])
         fin_move_list.append(moveD.copy())
     return fin_move_list.copy()
 
