@@ -456,13 +456,58 @@ def CTYSkills(skillBlock : str):
      pass
 #Level Up Moves -- Dictionary of dictionary
 def CTYLvlMoves(lvl_moves : list):
-    pass
+    moveList = []
+    for line in lvl_moves.splitlines():
+        moveDict = {}
+        betterLine = removeAllNonsense(line)
+        endDig = 0
+        if betterLine[0].isdigit():
+            if betterLine[1].isdigit():
+                if betterLine[2].isdigit():
+                    moveDict["LEVEL"] = betterLine[0:3]
+                    endDig = 3
+                else:
+                    moveDict["LEVEL"] = betterLine[0:2]
+                    endDig = 2
+            else:
+                moveDict["LEVEL"] = betterLine[0]
+                endDig = 1
+        else:
+            moveDict["LEVEL"] = "1"
+            endDig = 1
+        isType = True
+        if " - " not in betterLine:
+            if "-" not in betterLine:
+                #import pdb; pdb.set_trace()
+                moveDict["MOVE"] = removeAllNonsense(betterLine[endDig:])
+                isType = False
+            else:
+                betterLine = betterLine[0:betterLine.index("-")] + " " + betterLine[betterLine.index("-"):]
+        if isType:
+            moveDict["MOVE"] = removeAllNonsense(betterLine[endDig:betterLine.index(" - ")])
+            moveDict["TYPE"] = removeAllNonsense(betterLine[betterLine.index(" - ") + 3:])
+            isType = False
+        moveList.append(moveDict.copy())
+    return moveList.copy()
+
 # TM/HM Moves -- Dictionary of dictionary
 def CTYTMMoves(tm_moves : list):
-    pass
+    fin_move_list = []
+    tm_moves_list = processCommaList(tm_moves)
+    for move in tm_moves_list:
+        moveD = {}
+        bMove = removeAllNonsense(move)
+        moveD["LEVEL"] = bMove[0:2]
+        moveD["NAME"] = removeAllNonsense(bMove[2:])
+        fin_move_list.append(moveD.copy())
+    return fin_move_list.copy()
+
 #Tutor Moves -- List
-def CTYTutorMoves(tut_moves : list):
-    pass
+def CTYTutorMoves(tut_moves : str):
+    fullList = processCommaList(tut_moves).copy()
+    for index, move in enumerate(fullList):
+        fullList[index] = removeAllCharacters(move, "\n")
+    return fullList
 
 def main():
     pokeEntry = {}
@@ -484,7 +529,10 @@ def main():
             pokeEntry["HABITAT"] = CTYHabit(pokemon['Habitat'])
             pokeEntry["CAPABILITIES"] = CTYCapabilities(pokemon['Capabilities'])
             pokeEntry["SKILLS"] = CTYSkills(pokemon['Skills'])
-            print(pokeEntry["SKILLS"])
+            pokeEntry["LEVEL_MOVES"] = CTYLvlMoves(pokemon['Level Up Moves'])
+            pokeEntry["TM_MOVES"] = CTYTMMoves(pokemon['TM/HM Moves'])
+            pokeEntry["TUTOR_MOVES"] = CTYTutorMoves(pokemon['Tutor Moves'])
+            print(pokeEntry["TUTOR_MOVES"])
 if __name__ == "__main__":
     main()
 
