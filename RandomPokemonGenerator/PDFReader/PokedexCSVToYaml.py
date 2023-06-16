@@ -13,6 +13,18 @@ def removeAllCharacters(word, removeChar):
     while removeChar in word:
         word = removeCharacter(word, removeChar)
     return word
+def replaceCharacter(word : str, find : str, replace : str):
+    if find not in word:
+        return word
+    if word[0] == find[0]:
+        return replace + word[len(find):]
+    elif word[len(word) - 1] == find[-1]:
+        return word[:len(word)-len(find)] + replace
+    return word[:word.index(find)] + replace + word[word.index(find) + len(find):]
+def replaceAllCharacters(word, find, replace):
+    while find in word:
+        word = replaceCharacter(word, find, replace)
+    return word
 def findIndexNonExcludedString(fullWord : str, exclusions : list):
     i = 0
     eliminate = False
@@ -311,7 +323,7 @@ def CTYSize(sizes : str):
     sizeDict = {"HEIGHT" : "", "WEIGHT" : ""}
     for line in sizes.splitlines():
         if "Height:" in line:
-            sizeDict["HEIGHT"] = line[8:]
+            sizeDict["HEIGHT"] = replaceAllCharacters(replaceAllCharacters(line[8:], "\u2019", "\'"), "\u201D", "\"")
         else:
             sizeDict["WEIGHT"] = line[8:]
     return sizeDict
