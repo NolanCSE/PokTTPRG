@@ -346,11 +346,113 @@ def CTYHabit(habits : str):
     for line in habits.splitlines():
         habitats.append(removeAllNonsense(line))
     return habitats
+#CTYCAPABILITIES -------
+def handleException(text : str, exception : str):
+    text = removeAllNonsense(text)
+    diction = {}
+    tDict = {}
+    if exception == "Jump": 
+        text = text[len("Jump") + 1:]
+        diction["ABILITY"] = "Jump"
+        tDict["LONG JUMP"] = text[0]
+        if len(text) > 2:
+            tDict["HIGH JUMP"] = text[2]
+        diction["VALUE"] = tDict.copy()
+    elif exception == "Naturewalk" or exception == "Na-turewalk":
+        text = text[len("Naturewalk") + 1:]
+        text = removeCharacter(text, "(")
+        text = removeCharacter(text, ")")
+        natureList = processCommaList(text)
+        diction["ABILITY"] = "Naturewalk"
+        diction["VALUE"] = natureList.copy()
+    return diction.copy()
+
+def hasDigit(text : str):
+    for character in text:
+        if character.isdigit():
+            return True
+    return False
+
 #Capabilities -- Dictionary
-def CTYCapabilities(capabilities : list):
-    pass
+def CTYCapabilities(capabilities : str):
+    exceptions = ["Jump", "Naturewalk", "Na-turewalk"]
+    capList = []
+    tempDict = {}
+    for line in capabilities.splitlines():
+        tempDict = {}
+        isException = False
+        for exception in exceptions:
+            if exception in line:
+                tempDict = handleException(line, exception).copy()
+                isException = True
+        if hasDigit(line) and not isException:
+            #deal with the digit
+            tempLine = removeAllNonsense(line)
+            tempDict["ABILITY"] = tempLine[0:-2]
+            tempDict["VALUE"] = tempLine[-1]
+        elif not isException:
+            #remove nonsense and stick in the list
+            tempDict["ABILITY"] = removeAllNonsense(line)
+        if len(line) != "":
+            capList.append(tempDict.copy())
+    return capList.copy()
+#CTYSKILLS ----
+def getSkill(text : str):
+    for ind, char in enumerate(text):
+        if not char.isalpha():
+            return text[:ind]
+def getDice(text : str):
+    for ind, char in enumerate(text):
+        if not char.isalnum():
+            return text[:ind]
+    if len(text) == 3:
+        return text
 #Skills -- Dictionary
-def CTYSkills(skills : list):
+def CTYSkills(skillBlock : str):
+     skills = []
+     skillDict = {}
+     if " - " in skillBlock:
+         skillBlock = skillBlock[:skillBlock.index(" - ")] + skillBlock[skillBlock.index(" - ") + 3:]
+     if "-\n" in skillBlock:
+         skillBlock = skillBlock[:skillBlock.index("-\n")] + skillBlock[skillBlock.index("-\n") + 2:]
+     if "Per cep" in skillBlock:
+         skillBlock = skillBlock[:skillBlock.index("Per cep") + 3] + skillBlock[skillBlock.index("cep"):]
+     #import pdb; pdb.set_trace()
+     skillBlock = removeAllNonsense(skillBlock)
+     while len(skillBlock) > 3:
+         skillDict = {}
+         plus = False
+         skillName = getSkill(skillBlock)
+         skillBlock = skillBlock[len(skillName) + 1:]
+         dice = getDice(skillBlock)
+         #import pdb; pdb.set_trace()
+         if len(dice) + 1 >= len(skillBlock):
+             skillDict["SKILL NAME"] = skillName
+             skillDict["DICE"] = dice
+             skills.append(skillDict.copy())
+             return skills
+         if skillBlock[len(dice)] == "+":
+             plus = True
+         skillBlock = skillBlock[len(dice) + 1:]
+         if plus:
+            mod = skillBlock[0]
+            if len(mod) + 1 >= len(skillBlock):
+                skillDict["SKILL NAME"] = skillName
+                skillDict["DICE"] = dice
+                skillDict["MOD"] = mod
+                skills.append(skillDict.copy())
+                return skills.copy()
+            skillBlock = skillBlock[len(mod):]
+            skillBlock = removeAllNonsense(skillBlock)
+            plus = False
+            skillDict["SKILL NAME"] = skillName
+            skillDict["DICE"] = dice
+            skillDict["MOD"] = mod
+            skills.append(skillDict.copy())
+         else:
+            skillDict["SKILL NAME"] = skillName
+            skillDict["DICE"] = dice
+            skills.append(skillDict.copy())
      pass
 #Level Up Moves -- Dictionary of dictionary
 def CTYLvlMoves(lvl_moves : list):
@@ -380,7 +482,9 @@ def main():
             pokeEntry["BREED_INFO"] = CTYBreedInfo(pokemon['Breeding Information'])
             pokeEntry["DIET"] = CTYDiet(pokemon['Diet'])
             pokeEntry["HABITAT"] = CTYHabit(pokemon['Habitat'])
-            print(pokeEntry["HABITAT"])
+            pokeEntry["CAPABILITIES"] = CTYCapabilities(pokemon['Capabilities'])
+            pokeEntry["SKILLS"] = CTYSkills(pokemon['Skills'])
+            print(pokeEntry["SKILLS"])
 if __name__ == "__main__":
     main()
 
