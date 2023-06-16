@@ -389,7 +389,7 @@ def hasDigit(text : str):
 
 #Capabilities -- Dictionary
 def CTYCapabilities(capabilities : str):
-    exceptions = ["Jump", "Naturewalk", "Na-turewalk"]
+    exceptions = ["Jump", "Naturewalk", "Na-turewalk", "Nature-walk"]
     capList = []
     tempDict = {}
     for line in capabilities.splitlines():
@@ -507,9 +507,14 @@ def CTYLvlMoves(lvl_moves : list):
 # TM/HM Moves -- Dictionary of dictionary
 def checkNumDigits(text : str):
     count = 0
+    maybe = False
     for character in text:
         if character.isdigit():
+            if maybe:
+                return 2
             count += 1
+        elif character == "A":
+            maybe = True
         else:
             return count
     return count
@@ -547,9 +552,10 @@ def main():
     pokemonList = []
     with open("pokedexCLEANEDCSV.csv", encoding="UTF-8") as csv_file:
         cleanedPokedex = csv.DictReader(csv_file)
-        for pokemon in cleanedPokedex:
+        for index, pokemon in enumerate(cleanedPokedex):
             fPokeEntry = {}
             fPokeEntry["NAME"] = CTYNames(pokemon['Species Name'])
+            fPokeEntry["POKEDEX_NUMBER"] = index + 1
             names.append(fPokeEntry["NAME"])
             pokemons.append(pokemon.copy())
             pokemonList.append(fPokeEntry.copy())
