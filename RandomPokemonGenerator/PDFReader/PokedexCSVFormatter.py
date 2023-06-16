@@ -1,4 +1,5 @@
 import csv
+from collections import OrderedDict
 CSV_NAME = "pokedexCSV.csv"
 CSV_WRITE = "pokedexCLEANEDCSV.csv"
 
@@ -368,48 +369,51 @@ def cleanTutorMoves(moveList):
     if not findNextNonColonSpace(0, un_move) == -1:
         moveBlock += eliminateEndSpaces(un_move[findNextNonColonSpace(0, un_move):])
     return moveList
+
+def findNextNonNeg(pairs : list, ind : int):
+    for index, pair in enumerate(pairs):
+        if index <= ind:
+            continue
+        if pair[1] != -1:
+            return index
+    return -1
 def cleanMoves(moves : list):
+    debug_count = 0
     lvl_moves = []
     tm_moves = []
+    egg_moves = []
     tutor_moves = []
 
-    debug_counter = 0
+    priorities = OrderedDict()
 
     for moveList in moves:
-        lvl_ind = moveList.index("Level Up Move List")
-        lvl_length = len("Level Up Move List")
-
+        actualMoveList = ["", "", "", ""]
+        priorities["Level Up Move List"] = -1
+        priorities["TM/HM Move List"] = -1
+        priorities["Egg Move List"] = -1
+        priorities["Tutor Move List"] = -1
+        
+        priorities["Level Up Move List"] = moveList.index("Level Up Move List")
         if "TM/HM Move List" in moveList:
-            tm_ind = moveList.index("TM/HM Move List")
-            tm_length = len("TM/HM Move List")
-            if "Tutor Move List" in moveList:
-                tutor_ind = moveList.index("Tutor Move List")
-                tutor_length = len("Tutor Move List")
-                tutor_moveList = moveList[tutor_ind + tutor_length:]
+            priorities["TM/HM Move List"] = moveList.index("TM/HM Move List")
+        if "Egg Move List" in moveList:
+            priorities["Egg Move List"] = moveList.index("Egg Move List")
+        if "Tutor Move List" in moveList:
+            priorities["Tutor Move List"] = moveList.index("Tutor Move List")
+        for index, pair in enumerate(list(priorities.items())):
+            #import pdb; pdb.set_trace()
+            if pair[1] == -1:
+                continue
+            nextHead = findNextNonNeg(list(priorities.items()), index)
+            if nextHead != -1:
+                actualMoveList[index] = moveList[pair[1] + len(pair[0]):list(priorities.items())[nextHead][1]]
             else:
-                tutor_moveList = ""
-            tm_moveList = moveList[tm_ind + tm_length:tutor_ind]
-        else:
-            tm_moveList = ""
-            if "Tutor Move List" in moveList:
-                tutor_ind = moveList.index("Tutor Move List")
-                tutor_length = len("Tutor Move List")
-                tutor_moveList = moveList[tutor_ind + tutor_length:]
-                tm_ind = tutor_ind
-            else:
-                tutor_moveList = ""
-                tm_ind = -1
-
-        if tm_ind == -1:        
-            lvl_moveList = moveList[lvl_ind + lvl_length:]
-        else:
-            lvl_moveList = moveList[lvl_ind + lvl_length: tm_ind]
-        lvl_moves.append(cleanLvlMoves(lvl_moveList))
-        tm_moves.append(cleanTMMoves(tm_moveList))
-        tutor_moves.append(cleanTutorMoves(tutor_moveList))
-
-        debug_counter += 1
-    return lvl_moves, tm_moves, tutor_moves
+                actualMoveList[index] = moveList[pair[1] + len(pair[0]):]
+        lvl_moves.append(cleanLvlMoves(actualMoveList[0]))
+        tm_moves.append(cleanTMMoves(actualMoveList[1]))
+        egg_moves.append(actualMoveList[2])
+        tutor_moves.append(cleanTutorMoves(actualMoveList[3]))
+    return lvl_moves, tm_moves, egg_moves, tutor_moves
 
 d_names = []
 d_stats = []
@@ -447,15 +451,15 @@ c_diet = cleanDiet(d_diet)
 c_habit = cleanHabit(d_habit)
 c_cap = cleanCap(d_cap)
 c_skill = cleanSkill(d_skill)
-c_move, c_tm, c_tutor = cleanMoves(d_move)
+c_move, c_tm, c_egg, c_tutor = cleanMoves(d_move)
 
 i = 0
 
-header = ["Species Name", "Stats", "Basic Information", "Evolutions", "Size", "Breeding Information", "Diet", "Habitat", "Capabilities", "Skills", "Level Up Moves", "TM/HM Moves", "Tutor Moves"]
+header = ["Species Name", "Stats", "Basic Information", "Evolutions", "Size", "Breeding Information", "Diet", "Habitat", "Capabilities", "Skills", "Level Up Moves", "TM/HM Moves", "Egg Moves", "Tutor Moves"]
 with open(CSV_WRITE, "w", encoding="UTF-8", newline="") as cleanedDex:
     writer = csv.writer(cleanedDex)
     writer.writerow(header)
     while i < len(c_names):
-        writer.writerow([c_names[i], c_stats[i], c_info[i], c_evol[i], c_size[i], c_breed[i], c_diet[i], c_habit[i], c_cap[i], c_skill[i], c_move[i], c_tm[i], c_tutor[i]])
+        writer.writerow([c_names[i], c_stats[i], c_info[i], c_evol[i], c_size[i], c_breed[i], c_diet[i], c_habit[i], c_cap[i], c_skill[i], c_move[i], c_tm[i], c_egg[i], c_tutor[i]])
         i += 1
     

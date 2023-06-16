@@ -525,6 +525,13 @@ def CTYTMMoves(tm_moves : list):
         fin_move_list.append(moveD.copy())
     return fin_move_list.copy()
 
+#Egg Moves -- List
+def CTYEggMoves(egg_moves : str):
+    fullList = processCommaList(egg_moves).copy()
+    for index, move in enumerate(fullList):
+        fullList[index] = removeAllCharacters(move, "\n")
+    return fullList
+
 #Tutor Moves -- List
 def CTYTutorMoves(tut_moves : str):
     fullList = processCommaList(tut_moves).copy()
@@ -559,6 +566,7 @@ def main():
             pokeEntry["SKILLS"] = CTYSkills(pokemon['Skills'])
             pokeEntry["LEVEL_MOVES"] = CTYLvlMoves(pokemon['Level Up Moves'])
             pokeEntry["TM_MOVES"] = CTYTMMoves(pokemon['TM/HM Moves'])
+            pokeEntry["EGG_MOVES"] = CTYEggMoves(pokemon['Egg Moves'])
             pokeEntry["TUTOR_MOVES"] = CTYTutorMoves(pokemon['Tutor Moves'])
             pokemonList[ind]["INFORMATION"] = pokeEntry.copy()
     with open("pokedex.yml", "w") as yml_file:
