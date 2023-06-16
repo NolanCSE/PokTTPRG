@@ -18,6 +18,8 @@ def findIndexNonExcludedString(fullWord : str, exclusions : list):
     eliminate = False
     while i < len(fullWord):
         for exclusion in exclusions:
+            if i >= len(fullWord):
+                return i
             if fullWord[i] == exclusion[0]:
                 if len(exclusion) == 1:
                     eliminate = True
@@ -513,13 +515,18 @@ def main():
     pokeEntry = {}
     names = []
     pokemons = []
+
+    pokemonList = []
     with open("pokedexCLEANEDCSV.csv", encoding="UTF-8") as csv_file:
         cleanedPokedex = csv.DictReader(csv_file)
         for pokemon in cleanedPokedex:
-            pokeEntry["NAME"] = CTYNames(pokemon['Species Name'])
-            names.append(pokeEntry["NAME"])
-            pokemons.append(pokemon)
-        for pokemon in pokemons:
+            fPokeEntry = {}
+            fPokeEntry["NAME"] = CTYNames(pokemon['Species Name'])
+            names.append(fPokeEntry["NAME"])
+            pokemons.append(pokemon.copy())
+            pokemonList.append(fPokeEntry.copy())
+        for ind, pokemon in enumerate(pokemons):
+            pokeEntry = {}
             pokeEntry["STATS"] = CTYStats(pokemon['Stats'])
             pokeEntry["BASIC_INFO"] = CTYBasicInfo(pokemon['Basic Information'])
             pokeEntry["EVOLUTIONS"] = CTYEvol(names, pokemon['Evolutions'])
@@ -532,7 +539,9 @@ def main():
             pokeEntry["LEVEL_MOVES"] = CTYLvlMoves(pokemon['Level Up Moves'])
             pokeEntry["TM_MOVES"] = CTYTMMoves(pokemon['TM/HM Moves'])
             pokeEntry["TUTOR_MOVES"] = CTYTutorMoves(pokemon['Tutor Moves'])
-            print(pokeEntry["TUTOR_MOVES"])
+            pokemonList[ind]["INFORMATION"] = pokeEntry.copy()
+    with open("pokedex.yml", "w") as yml_file:
+        yaml.dump(pokemonList, yml_file, sort_keys=False)
 if __name__ == "__main__":
     main()
 
