@@ -2,8 +2,13 @@ from tkinter import *
 from tkinter import ttk
 import time
 import yaml
+import tkinter as tk
+import RPG_Controller
 
-#Config
+#UI Config
+DEFAULT_TEXT_PADDING = ("5", "5")
+
+#Data Config
 ENVIRONMENTS = ["ARCTIC", "BEACH", "CAVE", "DESERT", "FOREST", "FRESHWATER", "GRASSLANDS", "MARSH", "MOUNTAIN", "OCEAN", "RAINFOREST", "TAIGA", "TUNDRA", "URBAN"]
 LEVEL_BOUNDARY = [0, 100]
 EVOLUTION_RANGE = [1, 3]
@@ -12,25 +17,29 @@ TYPES = ["NORMAL", "FIRE", "WATER", "ELECTRIC", "GRASS", "ICE", "FIGHTING", "POI
 #Data
 pokedex = []
 
-#instance vars subject to change
-quantity = 1
-environments_to_generate = []
-acceptable_levels = []
-acceptable_evol_stages = []
-acceptable_types = []
+def create_quantity_field(frame : ttk.Labelframe):
+    global DEFAULT_PADDING
 
-def create_basic_section(frame : ttk.Frame):
-    quantity_label = ttk.Label(frame, text="Quantity")
-    quantity_label.pack(padx=5, pady=5)
+    quantity_label = ttk.Label(frame, text="Quantity", padding=DEFAULT_TEXT_PADDING)
+    quantity_label.grid(row=0, column=0)
 
-    quantity_box = ttk.Spinbox(frame, increment=1, to=20)
-    quantity_box.pack(padx=5, pady=5)
+    
+    quantity_box = ttk.Spinbox(frame, increment=1, from_=1, to=20, justify='center', wrap=True, state="readonly", command=lambda: RPG_Controller.updateQuantity(quantity_box.get()))
+    quantity_box.config(width=5)
+    quantity_box.set(1)
+
+    quantity_box.grid(row=0, column=1)
+
+
+def create_basic_section(frame : ttk.Labelframe):
+    create_quantity_field(frame)
     pass
 
 def create_form():
     global LEVEL_BOUNDARY, ENVIRONMENTS, EVOLUTION_RANGE, TYPES, pokedex, quantity
-    window = Tk(className=" Random Pokemon Generator", height=500, width=500)
-    frame = ttk.Frame(window)
+    window = Tk(className=" Random Pokemon Generator")
+    window.geometry("500x500")
+    frame = ttk.Labelframe(window, text="Basic Information")
     frame.grid(row=0, column=0)
     create_basic_section(frame=frame)
 
@@ -44,8 +53,8 @@ def load_pokedex():
 
 def main():
     global pokedex
-    load_pokedex()
-    print(pokedex)
+    #load_pokedex()
+    #print(pokedex)
     create_form()
 
 if __name__ == "__main__":
