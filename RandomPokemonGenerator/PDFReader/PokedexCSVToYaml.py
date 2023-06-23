@@ -277,6 +277,8 @@ def CTYEvol(pokemonNames : list, evols : str):
         evols = "1: Farfetch'd"
     if "Poliwrath" in evols:
         evols = "1: Poliwag\n2: Poliwhirl Minimum 25\n3: Poliwrath Water Stone Minimum 30 3 - Politoed Holding King's Rock Minimum 30"
+    if "onkeldurr Mini - " in evols:
+        evols = "1: Timburr\n2: Gurdurr Minimum 25\n3: Conkeldurr Minimum 40"
     evolList = []
     evolDict = {"STAGE" : "", "NAME" : "", "LEVEL" : "", "MISC" : ""}
     if "-" in evols and "-Z" not in evols and "-oh" not in evols:
@@ -550,7 +552,7 @@ def main():
     pokemons = []
 
     pokemonList = []
-    with open("pokedexCLEANEDCSV.csv", encoding="UTF-8") as csv_file:
+    with open("Pokedex_PlaytestCLEANED.csv", encoding="UTF-8") as csv_file:
         cleanedPokedex = csv.DictReader(csv_file)
         for index, pokemon in enumerate(cleanedPokedex):
             fPokeEntry = {}
@@ -575,7 +577,7 @@ def main():
             pokeEntry["EGG_MOVES"] = CTYEggMoves(pokemon['Egg Moves'])
             pokeEntry["TUTOR_MOVES"] = CTYTutorMoves(pokemon['Tutor Moves'])
             pokemonList[ind]["INFORMATION"] = pokeEntry.copy()
-    with open("pokedex.yml", "w") as yml_file:
+    with open("pokedex_errata.yml", "w") as yml_file:
         yaml.dump(pokemonList, yml_file, sort_keys=False)
 if __name__ == "__main__":
     main()

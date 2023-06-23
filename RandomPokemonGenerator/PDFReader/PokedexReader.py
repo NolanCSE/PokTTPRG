@@ -27,8 +27,8 @@ def parseEntry(pageBody : str):
     pass
 
 #storing names
-PDF_NAME = "pokedex.pdf"
-CSV_NAME = "pokedexCSV.csv"
+PDF_NAME = "Pokedex_Playtest105Plus.pdf"
+CSV_NAME = "Pokedex_Playtest105PlusCSV.csv"
 
 #setting csv header
 header = ["Species Name", "Base Stats", "Basic Information", "Evolution", "Size Information", "Breeding Information", "Diet", "Habitat", "Capability List", "Skill List", "Move List", "Misc"]
@@ -59,15 +59,15 @@ with open(CSV_NAME, "w", encoding="UTF-8", newline="") as f:
             elif page is pdfReader.pages[607]:
                #appliance rotoms; need to input these manually
                pass 
-            elif page is pdfReader.pages[162]:
-                string = page.extract_text()
-                writer.writerow(parseEntry(string[:string.index("Ignition Boost") + len("Ignition Boost")] + "\nEvolution:" + string[string.index("Ignition Boost") + len("Ignition Boost"):]))
-            elif page is pdfReader.pages[120]:
-                string = page.extract_text()
-                writer.writerow(parseEntry(string[:string.index("Biology") - 1] + "Diet : " + string[string.index("Biology : ") + len("Biology : "):]))
-            elif page is pdfReader.pages[50]:
-                string = page.extract_text()
-                writer.writerow(parseEntry(string[:string.index("Courage") + len("Courage")] + "\nEvolution:" + string[string.index("Courage") + len("Courage"):]))
+            #elif page is pdfReader.pages[162]:
+            #    string = page.extract_text()
+            #    writer.writerow(parseEntry(string[:string.index("Ignition Boost") + len("Ignition Boost")] + "\nEvolution:" + string[string.index("Ignition Boost") + len("Ignition Boost"):]))
+            #elif page is pdfReader.pages[120]:
+            #    string = page.extract_text()
+            #    writer.writerow(parseEntry(string[:string.index("Biology") - 1] + "Diet : " + string[string.index("Biology : ") + len("Biology : "):]))
+            #elif page is pdfReader.pages[50]:
+            #    string = page.extract_text()
+            #    writer.writerow(parseEntry(string[:string.index("Courage") + len("Courage")] + "\nEvolution:" + string[string.index("Courage") + len("Courage"):]))
             else:
                 writer.writerow(parseEntry(page.extract_text()))
 

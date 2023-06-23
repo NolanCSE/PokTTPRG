@@ -1,7 +1,7 @@
 import csv
 from collections import OrderedDict
-CSV_NAME = "pokedexCSV.csv"
-CSV_WRITE = "pokedexCLEANEDCSV.csv"
+CSV_NAME = "Pokedex_Playtest105PlusCSV.csv"
+CSV_WRITE = "Pokedex_PlaytestCLEANED.csv"
 
 def getFrontDigits(name : str):
     count = 0
@@ -94,12 +94,27 @@ def parseInfoBlock(infoBlock : str, typeSpace=False, typeSynSpace=False):
     #High Abilities
     infoBlockF = infoBlockF + "[" + "HA: "
     if "High Ability" in infoBlock:
-        HALoc = infoBlock.index("High Ability: ")
-        HALen = len("High Ability: ")
-        if "\n" in infoBlock[HALoc + HALen:]:
-            infoBlockF = infoBlockF + infoBlock[HALoc + HALen:infoBlock.index("\n")]
+        if "High Ability (F)" in infoBlock:
+            HALoc = infoBlock.index("High Ability (F): ")
+            HALen = len("High Ability (F): ")
+            if "\n" in infoBlock[HALoc + HALen:]:
+                infoBlockF = infoBlockF + infoBlock[HALoc + HALen:infoBlock.index("\n")]
+            else:
+                infoBlockF = infoBlockF + infoBlock[HALoc + HALen:]
+        elif "High Ability (M)" in infoBlock:
+            HALoc = infoBlock.index("High Ability (M): ")
+            HALen = len("High Ability (M): ")
+            if "\n" in infoBlock[HALoc + HALen:]:
+                infoBlockF = infoBlockF + infoBlock[HALoc + HALen:infoBlock.index("\n")]
+            else:
+                infoBlockF = infoBlockF + infoBlock[HALoc + HALen:]
         else:
-            infoBlockF = infoBlockF + infoBlock[HALoc + HALen:]
+            HALoc = infoBlock.index("High Ability: ")
+            HALen = len("High Ability: ")
+            if "\n" in infoBlock[HALoc + HALen:]:
+                infoBlockF = infoBlockF + infoBlock[HALoc + HALen:infoBlock.index("\n")]
+            else:
+                infoBlockF = infoBlockF + infoBlock[HALoc + HALen:]
     infoBlockF = infoBlockF + "]"
     return infoBlockF
 
