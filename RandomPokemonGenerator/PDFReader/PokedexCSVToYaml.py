@@ -1,5 +1,6 @@
 import yaml
 import csv
+import time, sys
 
 def removeCharacter(word, removeChar):
     if removeChar not in word:
@@ -72,6 +73,50 @@ def processCommaList(commaStr : str):
         commaStr = commaStr[commaStr.index(",") + 1:]
     ls.append(removeAllNonsense(commaStr))
     return ls
+def abolish_empty_lines(block: str):
+    better_block = ""
+    for line in block.splitlines():
+        for character in line:
+            if character != "\n" and character != " ":
+                better_block += line + "\n"
+                break
+    return better_block
+def is_dash_end(line: str, dash_ind: int):
+    not_accepted = {" ", "\n", "\t"}
+    for character in line[dash_ind + 1:]:
+        if character not in not_accepted:
+            return False
+    return True
+def conjoin_dumb_lines(block: str):
+    better_block = ""
+    splitlines = block.splitlines()
+    i = 0
+    while i < len(splitlines):
+        if "-" in splitlines[i]:
+            if is_dash_end(splitlines[i], splitlines[i].index("-")):
+                end_ind = move_backwards(splitlines[i], splitlines[i].index("-"))
+                better_block += splitlines[i][:end_ind] + splitlines[i + 1] + "\n"
+                i += 2
+            else:
+                better_block += splitlines[i] + "\n"
+                i += 1
+        else:
+            better_block += splitlines[i] + "\n"
+            i += 1
+    return better_block
+def conjoin_dumb_naturewalk_lines(block: str):
+    better_block = ""
+    splitlines = block.splitlines()
+    i = 0
+    while i < len(splitlines):
+        if "Naturewalk" in splitlines[i] and "(" not in splitlines[i]:
+            #import pdb; pdb.set_trace()
+            better_block += splitlines[i] + splitlines[i+1] + "\n"
+            i += 2
+        else:
+            better_block += splitlines[i] + "\n"
+            i += 1
+    return better_block
 #CTYNAME ----------
 def spaceOut(camelCase):
     #if there is no space between a lower and upper case letter, insert one
@@ -374,7 +419,7 @@ def handleException(text : str, exception : str):
         if len(text) > 2:
             tDict["HIGH JUMP"] = text[2]
         diction["VALUE"] = tDict.copy()
-    elif exception == "Naturewalk" or exception == "Na-turewalk":
+    elif exception == "Naturewalk" or exception == "Na-turewalk" or exception == "Nature-walk":
         text = text[len("Naturewalk") + 1:]
         text = removeCharacter(text, "(")
         text = removeCharacter(text, ")")
@@ -394,6 +439,11 @@ def CTYCapabilities(capabilities : str):
     exceptions = ["Jump", "Naturewalk", "Na-turewalk", "Nature-walk"]
     capList = []
     tempDict = {}
+    #import pdb; pdb.set_trace()
+    capabilities = abolish_empty_lines(capabilities)
+    capabilities = conjoin_dumb_lines(capabilities)
+    capabilities = conjoin_dumb_naturewalk_lines(capabilities)
+    capabilities = removeAllNonsense(capabilities)
     for line in capabilities.splitlines():
         tempDict = {}
         isException = False
@@ -425,6 +475,7 @@ def getDice(text : str):
         return text
 #Skills -- Dictionary
 def CTYSkills(skillBlock : str):
+     #import pdb; pdb.set_trace()
      skills = []
      skillDict = {}
      if " - " in skillBlock:
@@ -434,6 +485,7 @@ def CTYSkills(skillBlock : str):
      if "Per cep" in skillBlock:
          skillBlock = skillBlock[:skillBlock.index("Per cep") + 3] + skillBlock[skillBlock.index("cep"):]
      #import pdb; pdb.set_trace()
+     skillBlock = abolish_empty_lines(skillBlock)
      skillBlock = removeAllNonsense(skillBlock)
      while len(skillBlock) > 3:
          skillDict = {}
@@ -546,6 +598,41 @@ def CTYTutorMoves(tut_moves : str):
         fullList[index] = removeAllCharacters(move, "\n")
     return fullList
 
+def move_backwards(orig_string: str, dash_ind: int):
+    bad_chars = {"\n", " ", "\t"}
+    i = dash_ind - 1
+    while orig_string[i] in bad_chars:
+        i -= 1
+    return i + 1
+def move_forwards(orig_string: str, dash_ind:int):
+    bad_chars = {"\n", " ", "\t"}
+    i = dash_ind + 1
+    while orig_string[i] in bad_chars:
+        i += 1
+    return i - 1
+
+#Moves = [{"LEVEL" : 1, "NAME" : Struggle}, {"LEVEL" : 20, "NAME" : "Fa     -    \n cade"}...]
+def clear_weird_space_from_moves(moves: list[dict]):
+    movesF = []
+    move_dict_f = {}
+    for move in moves:
+        move_dict_f = move.copy()
+        if " - " in move["NAME"] or "-\n" in move["NAME"] or " -" in move["NAME"] or "- " in move["NAME"]:
+            ind_dash = move["NAME"].find("-")
+            begin_index = move_backwards(move["NAME"], ind_dash)
+            end_index = move_forwards(move["NAME"], ind_dash)
+            move_dict_f["NAME"] = move["NAME"][:begin_index] + move["NAME"][end_index + 1:]
+        move_dict_f["NAME"] = removeAllCharacters(move_dict_f["NAME"], "\n")
+        movesF.append(move_dict_f.copy())
+    return movesF.copy()
+
+def clear_weird_spaces(level_mvs: list, tm_mvs: list, egg_mvs: list, tutors_mvs: list):
+    #level_mvs = clear_weird_space_from_moves(level_mvs)
+    tm_mvs = clear_weird_space_from_moves(tm_mvs)
+    #egg_mvs = clear_weird_space_from_moves(egg_mvs)
+    #tutors_mvs = clear_weird_space_from_moves(tutors_mvs)
+    return level_mvs, tm_mvs, egg_mvs, tutors_mvs
+
 def main():
     pokeEntry = {}
     names = []
@@ -563,19 +650,34 @@ def main():
             pokemonList.append(fPokeEntry.copy())
         for ind, pokemon in enumerate(pokemons):
             pokeEntry = {}
+            print("RUNNING STATS", file=sys.stderr)
             pokeEntry["STATS"] = CTYStats(pokemon['Stats'])
+            print("GETTING INFO", file=sys.stderr)
             pokeEntry["BASIC_INFO"] = CTYBasicInfo(pokemon['Basic Information'])
+            print("GETTING EVOLUTIONS", file=sys.stderr)
             pokeEntry["EVOLUTIONS"] = CTYEvol(names, pokemon['Evolutions'])
+            print("GETTING SIZE", file=sys.stderr)
             pokeEntry["SIZE"] = CTYSize(pokemon['Size'])
+            print("GETTING BREEDS", file=sys.stderr)
             pokeEntry["BREED_INFO"] = CTYBreedInfo(pokemon['Breeding Information'])
+            print("GETTING DIET", file=sys.stderr)
             pokeEntry["DIET"] = CTYDiet(pokemon['Diet'])
+            print("GETTING HABITAT", file=sys.stderr)
             pokeEntry["HABITAT"] = CTYHabit(pokemon['Habitat'])
+            print("GETTING CAPABILITIES", file=sys.stderr)
             pokeEntry["CAPABILITIES"] = CTYCapabilities(pokemon['Capabilities'])
+            print("GETTING SKILLS", file=sys.stderr)
             pokeEntry["SKILLS"] = CTYSkills(pokemon['Skills'])
+            print("GETTING LEVEL MOVES", file=sys.stderr)
             pokeEntry["LEVEL_MOVES"] = CTYLvlMoves(pokemon['Level Up Moves'])
+            print("GETTING TM MOVES", file=sys.stderr)
             pokeEntry["TM_MOVES"] = CTYTMMoves(pokemon['TM/HM Moves'])
+            print("GETTING EGG MOVES", file=sys.stderr)
             pokeEntry["EGG_MOVES"] = CTYEggMoves(pokemon['Egg Moves'])
+            print("GETTING TUTOR MOVES", file=sys.stderr)
             pokeEntry["TUTOR_MOVES"] = CTYTutorMoves(pokemon['Tutor Moves'])
+            print("FIXING MOVES", file=sys.stderr)
+            pokeEntry["LEVEL_MOVES"], pokeEntry["TM_MOVES"], pokeEntry["EGG_MOVES"], pokeEntry["TUTOR_MOVES"] = clear_weird_spaces(pokeEntry["LEVEL_MOVES"], pokeEntry["TM_MOVES"], pokeEntry["EGG_MOVES"], pokeEntry["TUTOR_MOVES"])
             pokemonList[ind]["INFORMATION"] = pokeEntry.copy()
     with open("pokedex_errata.yml", "w") as yml_file:
         yaml.dump(pokemonList, yml_file, sort_keys=False)
