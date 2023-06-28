@@ -2,6 +2,7 @@ from tkinter import *
 from tkinter import ttk
 import time
 import yaml
+from PIL import ImageTk, Image
 import tkinter as tk
 from tkinter.font import Font
 import RPG_Controller
@@ -18,18 +19,30 @@ TYPES = ["NORMAL", "FIRE", "WATER", "ELECTRIC", "GRASS", "ICE", "FIGHTING", "POI
 #Fonts
 DEFAULT_FONT_FAMILY = "HELVETICA"
 
+#Image Locations:
+TYPE_ICONS = ["fire.png"]
+
 #Data
 pokedex = []
 
 class PokeForm(tk.Tk):
 
     __stages: list[tk.BooleanVar]
+    __type_icons: list[tk.PhotoImage]
 
     def __init__(self):
         super().__init__()
         self.title('Random Pokemon Generator')
         self.geometry("500x500")
+        self.load_assets()
         self.create_form()
+
+    #Loading
+    def load_assets(self):
+        global TYPE_ICONS
+        self.__type_icons = []
+        for icon_path in TYPE_ICONS:
+            self.__type_icons.append(tk.PhotoImage(file="assets\\images\\" + icon_path))
 
     #Basic Info Frame
     def from_field_valid(self, from_: int, to: int, spinbox: ttk.Spinbox):
@@ -94,23 +107,33 @@ class PokeForm(tk.Tk):
 
     #Environment Frame
     def create_environment_field(self, frame : ttk.Frame):
-        global ENVIRONMENTS
+        global ENVIRONMENTS, DEFAULT_TEXT_PADDING, DEFAULT_FONT_FAMILY
         self.__buttonVars = []
         self.__buttons = []
         self.__buttonLabels = []
+
+        label_font = Font(family=DEFAULT_FONT_FAMILY, size=10)
         #import pdb; pdb.set_trace()
         per_column = int(len(ENVIRONMENTS) / 2)
         column_counter = 0
         row_counter = 0
         for index in range(len(ENVIRONMENTS)):
+            self.__buttonLabels.append(ttk.Label(frame, text=ENVIRONMENTS[index], padding=DEFAULT_TEXT_PADDING, font=label_font))
             self.__buttonVars.append(tk.BooleanVar())
             self.__buttons.append(ttk.Checkbutton(frame, variable=self.__buttonVars[-1], onvalue=True, offvalue=False))
             self.__buttons[-1].grid(row=row_counter, column = column_counter)
+            self.__buttonLabels[-1].grid(row=row_counter, column = column_counter + 1)
             row_counter += 1
             if (index + 1) % per_column == 0:
-                column_counter += 1
+                column_counter += 2
                 row_counter = 0
         pass
+
+    #Types Frame
+    def create_types_field(self, frame: ttk.Frame):
+        global DEFAULT_FONT_FAMILY, DEFAULT_TEXT_PADDING
+        fire_button = ttk.Button(frame, image=self.__type_icons[0])
+        fire_button.grid(row=0, column=0)
 
     #Quantity Frame
     def create_quantity_field(self, frame : ttk.Labelframe):
@@ -147,6 +170,10 @@ class PokeForm(tk.Tk):
         pass
 
     def create_types_section(self, frame: ttk.Labelframe):
+        types_frame = ttk.Frame(frame)
+        types_frame.grid(row=0, column=0)
+        self.create_types_field(types_frame)
+        
         pass
 
     def create_quantity_section(self, frame: ttk.Labelframe):
